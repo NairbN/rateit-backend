@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16
+    container_name: rateit-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: rateit_user
+      POSTGRES_PASSWORD: rateit_password
+      POSTGRES_DB: rateit_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rateit_user -d rateit_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+  api:
+    build: .
+    container_name: rateit-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/rateit_db
+      - SPRING_DATASOURCE_USERNAME=rateit_user
+      - SPRING_DATASOURCE_PASSWORD=rateit_password
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  db_data:
