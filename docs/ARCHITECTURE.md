@@ -23,15 +23,15 @@ A TikTok-style short video platform backend. Users can upload short videos, stre
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Language | Java 17 |
-| Framework | Spring Boot 4.x |
-| Build | Maven |
-| ORM | Spring Data JPA + Hibernate |
-| DB Migrations | Flyway |
-| Database | PostgreSQL 16 |
-| Containerization | Docker + Docker Compose |
+| Layer            | Technology                  |
+| ---------------- | --------------------------- |
+| Language         | Java 17                     |
+| Framework        | Spring Boot 4.x             |
+| Build            | Maven                       |
+| ORM              | Spring Data JPA + Hibernate |
+| DB Migrations    | Flyway                      |
+| Database         | PostgreSQL 16               |
+| Containerization | Docker + Docker Compose     |
 
 ---
 
@@ -82,20 +82,22 @@ src/main/java/com/rateit/rateit_backend/
 
 The database speaks SQL. The application speaks Java. Each layer is a translator and gatekeeper between those worlds.
 
-| Layer | Responsibility | Speaks |
-|---|---|---|
-| **Entity** | Mirror of a DB table row — no business logic, no HTTP awareness | JPA / DB schema |
-| **Repository** | Gateway to the DB — the rest of the app never writes SQL | JPA queries |
-| **Service** | All business rules live here — validates, orchestrates, decides | Java / domain logic |
-| **DTO** | Shape of data crossing the API boundary — decoupled from entity | JSON / HTTP contract |
-| **Controller** | Handles HTTP — routes requests to services, returns responses | HTTP |
+| Layer          | Responsibility                                                  | Speaks               |
+| -------------- | --------------------------------------------------------------- | -------------------- |
+| **Entity**     | Mirror of a DB table row — no business logic, no HTTP awareness | JPA / DB schema      |
+| **Repository** | Gateway to the DB — the rest of the app never writes SQL        | JPA queries          |
+| **Service**    | All business rules live here — validates, orchestrates, decides | Java / domain logic  |
+| **DTO**        | Shape of data crossing the API boundary — decoupled from entity | JSON / HTTP contract |
+| **Controller** | Handles HTTP — routes requests to services, returns responses   | HTTP                 |
 
 Each layer only talks to the one directly next to it:
+
 ```
 HTTP Request → Controller → Service → Repository → Database
 ```
 
 **Why this matters:**
+
 - Change the DB schema? Update entity + repository. Controller doesn't care.
 - Change the API response shape? Update the DTO. Entity doesn't change.
 - Change a business rule? Update the service. Nothing else moves.
@@ -112,15 +114,15 @@ HTTP Request → Controller → Service → Repository → Database
 
 ## Database Schema
 
-### posts (V1__init.sql)
+### posts (V1\_\_init.sql)
 
-| Column | Type | Notes |
-|---|---|---|
-| id | bigserial | PK |
-| caption | varchar(300) | Optional |
-| status | varchar(30) | NOT NULL — e.g. PENDING, READY |
-| video_key | varchar(255) | Path/key to video file |
-| created_at | timestamptz | Defaults to now() |
+| Column     | Type         | Notes                          |
+| ---------- | ------------ | ------------------------------ |
+| id         | bigserial    | PK                             |
+| caption    | varchar(300) | Optional                       |
+| status     | varchar(30)  | NOT NULL — e.g. PENDING, READY |
+| video_key  | varchar(255) | Path/key to video file         |
+| created_at | timestamptz  | Defaults to now()              |
 
 ---
 
@@ -143,9 +145,11 @@ Why: The final image contains no Maven, no source code, no build tools — only 
 
 Spring Boot environment variables override `application.yaml` automatically.
 `docker-compose.yml` sets:
+
 ```
 SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/rateit_db
 ```
+
 This avoids needing a separate `application-docker.yaml`.
 
 ---
@@ -154,25 +158,27 @@ This avoids needing a separate `application-docker.yaml`.
 
 Three levels of tests. All run with `./mvnw.cmd test`.
 
-| Type | Annotation | What it tests | DB? |
-|---|---|---|---|
-| Unit | `@ExtendWith(MockitoExtension.class)` | Service logic only — everything else mocked | No |
-| Slice | `@WebMvcTest` | HTTP layer only — service mocked, no real logic | No |
+| Type        | Annotation                            | What it tests                                     | DB?                  |
+| ----------- | ------------------------------------- | ------------------------------------------------- | -------------------- |
+| Unit        | `@ExtendWith(MockitoExtension.class)` | Service logic only — everything else mocked       | No                   |
+| Slice       | `@WebMvcTest`                         | HTTP layer only — service mocked, no real logic   | No                   |
 | Integration | `@SpringBootTest` + `@Testcontainers` | Full stack — real PostgreSQL via Docker container | Yes (Testcontainers) |
 
 **Test file naming convention:**
+
 - `*Test.java` — unit or slice test (picked up by Maven Surefire)
 - `*IntegrationTest.java` — full-stack integration test (also Surefire)
 - `*IT.java` — NOT picked up by Surefire by default (requires Failsafe plugin). Avoid this suffix.
 
 **Current test inventory:**
 
-| File | Type | What it covers |
-|---|---|---|
-| `RateitBackendApplicationTests` | Integration | Spring context loads, Flyway migrations run |
-| `PostServiceTest` | Unit | `createPost` service logic |
-| `PostControllerTest` | Slice | `POST /posts` — 201 happy path, 400 blank caption |
-| `CreatePostIntegrationTest` | Integration | Full create post flow, real DB |
+| File                            | Type        | What it covers                                                                    |
+| ------------------------------- | ----------- | --------------------------------------------------------------------------------- |
+| `RateitBackendApplicationTests` | Integration | Spring context loads, Flyway migrations run                                       |
+| `PostServiceTest`               | Unit        | `createPost` + `uploadVideo` service logic                                        |
+| `PostControllerTest`            | Slice       | `POST /posts` — 201 happy path, 400 blank caption; `POST /posts/{id}/video` — 200 |
+| `CreatePostIntegrationTest`     | Integration | Full create post flow, real DB                                                    |
+| `UploadVideoIntegrationTest`    | Integration | Create post + upload video, real DB + real file system                            |
 
 ---
 
@@ -181,6 +187,7 @@ Three levels of tests. All run with `./mvnw.cmd test`.
 This project uses **Spring Boot 4.0.x** which is a major version with breaking changes from 3.x. Key differences:
 
 **Test annotation packages moved:**
+
 ```java
 // Spring Boot 3.x (WRONG for this project):
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -192,6 +199,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 ```
 
 **`@MockBean` replaced by `@MockitoBean`:**
+
 ```java
 // Spring Boot 3.x (WRONG):
 @MockBean private PostService postService;
@@ -202,12 +210,15 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
 **`ObjectMapper` not auto-injectable in `@WebMvcTest`:**
 Instantiate manually:
+
 ```java
 private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 ```
+
 `findAndRegisterModules()` is required for `Instant` serialization (registers `JavaTimeModule`).
 
 **Test dependencies needed (beyond `spring-boot-starter-test`):**
+
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -215,19 +226,20 @@ private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModu
     <scope>test</scope>
 </dependency>
 ```
+
 This provides `@WebMvcTest` and `@AutoConfigureMockMvc` in the 4.x package location.
 
 ---
 
 ## Key Design Decisions
 
-| Decision | Reasoning |
-|---|---|
-| `ddl-auto: validate` (not `update`) | Flyway owns the schema. Hibernate should only validate it matches, never alter it. Both managing schema causes conflicts. |
-| DTOs separate from entities | Entities are internal DB representations. DTOs control the API contract. Decoupling means you can change DB schema without breaking the API. |
-| `storage/` as its own package | Abstracts file I/O so the service layer doesn't care if storage is local disk or S3. Swap the implementation, not the interface. |
-| No auth in MVP | Keeps the MVP scope tight. Auth will be added as a separate layer later (Spring Security + JWT). |
-| Flyway for migrations | Versioned, repeatable, tracked in git. Never rely on Hibernate auto-DDL in any environment beyond early local dev. |
+| Decision                            | Reasoning                                                                                                                                    |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ddl-auto: validate` (not `update`) | Flyway owns the schema. Hibernate should only validate it matches, never alter it. Both managing schema causes conflicts.                    |
+| DTOs separate from entities         | Entities are internal DB representations. DTOs control the API contract. Decoupling means you can change DB schema without breaking the API. |
+| `storage/` as its own package       | Abstracts file I/O so the service layer doesn't care if storage is local disk or S3. Swap the implementation, not the interface.             |
+| No auth in MVP                      | Keeps the MVP scope tight. Auth will be added as a separate layer later (Spring Security + JWT).                                             |
+| Flyway for migrations               | Versioned, repeatable, tracked in git. Never rely on Hibernate auto-DDL in any environment beyond early local dev.                           |
 
 ---
 
@@ -250,7 +262,7 @@ This provides `@WebMvcTest` and `@AutoConfigureMockMvc` in the 4.x package locat
 - [x] Post controller (POST /posts)
 - [x] PostControllerTest (@WebMvcTest slice test — MockMvc + @MockitoBean)
 - [x] CreatePostIntegrationTest (full-stack integration test — Testcontainers + real PostgreSQL)
-- [ ] Video upload (multipart)
+- [x] Video upload (multipart) — POST /posts/{id}/video, LocalVideoStorage, StorageConfig, GlobalExceptionHandler
 - [ ] Video streaming (HTTP Range)
 - [ ] View tracking
 - [ ] Analytics endpoint

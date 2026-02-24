@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import com.rateit.rateit_backend.service.PostService;
 import com.rateit.rateit_backend.dto.request.CreatePostRequest;
 import com.rateit.rateit_backend.dto.response.PostResponse;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,12 @@ public class PostController {
     public ResponseEntity<PostResponse> createPost(@Valid @RequestBody CreatePostRequest request) {
         PostResponse response = postService.createPost(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/{id}/video")
+    public ResponseEntity<PostResponse> uploadVideo(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        PostResponse response = postService.uploadVideo(id, file);
+        return ResponseEntity.ok(response);
     }
 
 }

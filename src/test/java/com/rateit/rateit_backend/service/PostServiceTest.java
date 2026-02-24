@@ -5,18 +5,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.multipart.MultipartFile;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
-
+import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.eq;
 import java.time.Instant;
-
+import java.util.Optional;
 import com.rateit.rateit_backend.entity.Post;
 import com.rateit.rateit_backend.entity.enums.PostStatus;
 import com.rateit.rateit_backend.dto.request.CreatePostRequest;
 import com.rateit.rateit_backend.dto.response.PostResponse;
-
+import com.rateit.rateit_backend.storage.VideoStorage;
 import com.rateit.rateit_backend.repository.PostRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -24,6 +27,9 @@ public class PostServiceTest {
 
     @Mock
     private PostRepository postRepository;
+
+    @Mock
+    private VideoStorage videoStorage;
 
     @InjectMocks
     private PostService postService;
@@ -51,6 +57,42 @@ public class PostServiceTest {
         assertThat(response.getCaption()).isEqualTo("Test caption");
         assertThat(response.getStatus()).isEqualTo("PENDING_UPLOAD");
         assertThat(response.getCreatedAt()).isNotNull();
+        verify(postRepository).save(any(Post.class));
+    }
+
+    @Test
+    void uploadVideo_shouldReturnResponseWithReadyStatus() {
+        // Given
+        Long postId = 1L;
+        MultipartFile mockFile = mock(MultipartFile.class);
+
+        Post existingPost = new Post();
+        existingPost.setId(postId);
+        existingPost.setStatus(PostStatus.PENDING_UPLOAD);
+        existingPost.setCreatedAt(Instant.now());
+        existingPost.setCaption("Test caption");
+
+        Post savedPost = new Post();
+        savedPost.setId(postId);
+        savedPost.setStatus(PostStatus.READY);
+        savedPost.setCreatedAt(existingPost.getCreatedAt());
+        savedPost.setCaption(existingPost.getCaption());
+        savedPost.setVideoKey("uploads/1/video.mp4");
+
+        when(postRepository.findById(postId)).thenReturn(Optional.of(existingPost));
+        when(postRepository.save(any(Post.class))).thenReturn(savedPost);
+        when(videoStorage.store(eq(postId), any(MultipartFile.class))).thenReturn("uploads/1/video.mp4");
+
+        // When
+        PostResponse response = postService.uploadVideo(postId, mockFile);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(postId);
+        assertThat(response.getCaption()).isEqualTo("Test caption");
+        assertThat(response.getStatus()).isEqualTo("READY");
+        assertThat(response.getCreatedAt()).isNotNull();
+        verify(videoStorage).store(eq(postId), any(MultipartFile.class));
         verify(postRepository).save(any(Post.class));
     }
 
