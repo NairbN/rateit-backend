@@ -175,8 +175,8 @@ Three levels of tests. All run with `./mvnw.cmd test`.
 | File                            | Type        | What it covers                                                                    |
 | ------------------------------- | ----------- | --------------------------------------------------------------------------------- |
 | `RateitBackendApplicationTests` | Integration | Spring context loads, Flyway migrations run                                       |
-| `PostServiceTest`               | Unit        | `createPost` + `uploadVideo` service logic                                        |
-| `PostControllerTest`            | Slice       | `POST /posts` — 201 happy path, 400 blank caption; `POST /posts/{id}/video` — 200 |
+| `PostServiceTest`               | Unit        | `createPost`, `uploadVideo`, `streamVideo` service logic                          |
+| `PostControllerTest`            | Slice       | `POST /posts` — 201/400; `POST /posts/{id}/video` — 200; `GET /posts/{id}/video` — 206 |
 | `CreatePostIntegrationTest`     | Integration | Full create post flow, real DB                                                    |
 | `UploadVideoIntegrationTest`    | Integration | Create post + upload video, real DB + real file system                            |
 
@@ -263,7 +263,7 @@ This provides `@WebMvcTest` and `@AutoConfigureMockMvc` in the 4.x package locat
 - [x] PostControllerTest (@WebMvcTest slice test — MockMvc + @MockitoBean)
 - [x] CreatePostIntegrationTest (full-stack integration test — Testcontainers + real PostgreSQL)
 - [x] Video upload (multipart) — POST /posts/{id}/video, LocalVideoStorage, StorageConfig, GlobalExceptionHandler
-- [ ] Video streaming (HTTP Range)
+- [x] Video streaming (HTTP Range) — GET /posts/{id}/video, Range header, 206 Partial Content, StreamingResponseBody
 - [ ] View tracking
 - [ ] Analytics endpoint
 - [ ] Feed endpoint

@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -94,6 +96,33 @@ public class PostServiceTest {
         assertThat(response.getCreatedAt()).isNotNull();
         verify(videoStorage).store(eq(postId), any(MultipartFile.class));
         verify(postRepository).save(any(Post.class));
+    }
+
+    @Test
+    void streamVideo_shouldReturnResource() {
+        // Given
+        Long postId = 1L;
+        String videoKey = "uploads/1/video.mp4";
+
+        Post existingPost = new Post();
+        existingPost.setId(postId);
+        existingPost.setStatus(PostStatus.READY);
+        existingPost.setCreatedAt(Instant.now());
+        existingPost.setCaption("Test caption");
+        existingPost.setVideoKey(videoKey);
+
+        Resource mockResource = new ByteArrayResource(new byte[] { 1, 2, 3 });
+
+        when(postRepository.findById(postId)).thenReturn(Optional.of(existingPost));
+        when(videoStorage.load(videoKey)).thenReturn(mockResource);
+
+        // When
+        Resource resource = postService.streamVideo(postId);
+
+        // Then
+        assertThat(resource).isNotNull();
+        assertThat(resource).isEqualTo(mockResource);
+        verify(videoStorage).load(videoKey);
     }
 
 }

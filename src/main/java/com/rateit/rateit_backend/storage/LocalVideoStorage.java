@@ -2,6 +2,8 @@ package com.rateit.rateit_backend.storage;
 
 import java.nio.file.Files;
 
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,6 +28,15 @@ public class LocalVideoStorage implements VideoStorage {
         } catch (Exception e) {
             throw new RuntimeException("Failed to store video for post ID: " + postId, e);
         }
+    }
+
+    @Override
+    public Resource load(String videoKey) {
+        Resource resource = new FileSystemResource(videoKey);
+        if (!resource.exists()) {
+            throw new RuntimeException("Video not found: " + videoKey);
+        }
+        return resource;
     }
 
 }

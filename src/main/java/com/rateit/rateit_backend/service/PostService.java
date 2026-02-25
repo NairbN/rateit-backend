@@ -1,5 +1,6 @@
 package com.rateit.rateit_backend.service;
 
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import com.rateit.rateit_backend.dto.response.PostResponse;
@@ -59,6 +60,23 @@ public class PostService {
                 saved.getCaption(),
                 saved.getStatus().name(),
                 saved.getCreatedAt());
+    }
+
+    @Transactional(readOnly = true)
+    public Resource streamVideo(Long id) {
+        // Find the post by ID
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException(id));
+
+        // Check if the post is ready for streaming
+        if (post.getStatus() != PostStatus.READY) {
+            throw new RuntimeException("Post is not ready for streaming");
+        }
+
+        if (post.getVideoKey() == null) {
+            throw new RuntimeException("No video associated with this post: " + id);
+        }
+        return videoStorage.load(post.getVideoKey());
     }
 
 }

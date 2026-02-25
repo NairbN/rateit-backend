@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,6 +19,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -86,5 +89,18 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.caption").value("Test caption"))
                 .andExpect(jsonPath("$.status").value("READY"))
                 .andExpect(jsonPath("$.createdAt").exists());
+    }
+
+    @Test
+    void streamVideo_shouldReturn206WithPartialContent() throws Exception {
+        // Given
+        byte[] fakeVideo = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+        Resource fakeResource = new ByteArrayResource(fakeVideo);
+
+        when(postService.streamVideo(1l)).thenReturn(fakeResource);
+
+        mockMvc.perform(get("/posts/1/video")
+                .header("Range", "bytes=0-3"))
+                .andExpect(status().isPartialContent());
     }
 }
