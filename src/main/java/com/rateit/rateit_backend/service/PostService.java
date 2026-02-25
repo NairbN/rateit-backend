@@ -12,9 +12,11 @@ import lombok.RequiredArgsConstructor;
 
 import com.rateit.rateit_backend.dto.request.CreatePostRequest;
 import com.rateit.rateit_backend.entity.Post;
+import com.rateit.rateit_backend.entity.ViewEvent;
 import com.rateit.rateit_backend.entity.enums.PostStatus;
 import com.rateit.rateit_backend.exception.PostNotFoundException;
 import com.rateit.rateit_backend.repository.PostRepository;
+import com.rateit.rateit_backend.repository.ViewEventRepository;
 import com.rateit.rateit_backend.storage.VideoStorage;
 
 @Service
@@ -23,6 +25,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final VideoStorage videoStorage;
+    private final ViewEventRepository viewEventRepository;
 
     @Transactional
     public PostResponse createPost(CreatePostRequest request) {
@@ -77,6 +80,19 @@ public class PostService {
             throw new RuntimeException("No video associated with this post: " + id);
         }
         return videoStorage.load(post.getVideoKey());
+    }
+
+    @Transactional
+    public void trackView(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException(postId));
+        if (post.getStatus() != PostStatus.READY) {
+            throw new RuntimeException("Post is not ready for viewing");
+        }
+
+        ViewEvent event = new ViewEvent();
+        event.setPostId(postId);
+        viewEventRepository.save(event);
     }
 
 }

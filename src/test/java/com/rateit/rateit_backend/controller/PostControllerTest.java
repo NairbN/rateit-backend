@@ -103,4 +103,10 @@ public class PostControllerTest {
                 .header("Range", "bytes=0-3"))
                 .andExpect(status().isPartialContent());
     }
+
+    @Test
+    void trackView_shouldReturn204() throws Exception {
+        mockMvc.perform(post("/posts/1/views"))
+                .andExpect(status().isNoContent());
+    }
 }

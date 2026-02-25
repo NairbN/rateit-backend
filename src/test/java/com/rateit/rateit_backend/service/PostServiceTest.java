@@ -18,17 +18,22 @@ import static org.mockito.ArgumentMatchers.eq;
 import java.time.Instant;
 import java.util.Optional;
 import com.rateit.rateit_backend.entity.Post;
+import com.rateit.rateit_backend.entity.ViewEvent;
 import com.rateit.rateit_backend.entity.enums.PostStatus;
 import com.rateit.rateit_backend.dto.request.CreatePostRequest;
 import com.rateit.rateit_backend.dto.response.PostResponse;
 import com.rateit.rateit_backend.storage.VideoStorage;
 import com.rateit.rateit_backend.repository.PostRepository;
+import com.rateit.rateit_backend.repository.ViewEventRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
 
     @Mock
     private PostRepository postRepository;
+
+    @Mock
+    private ViewEventRepository viewEventRepository;
 
     @Mock
     private VideoStorage videoStorage;
@@ -123,6 +128,18 @@ public class PostServiceTest {
         assertThat(resource).isNotNull();
         assertThat(resource).isEqualTo(mockResource);
         verify(videoStorage).load(videoKey);
+    }
+
+    @Test
+    void trackView_shouldSaveViewEvent() {
+        Long postId = 1L;
+        Post post = new Post();
+        post.setId(postId);
+        post.setStatus(PostStatus.READY);
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        postService.trackView(postId);
+        verify(postRepository).findById(postId);
+        verify(viewEventRepository).save(any(ViewEvent.class));
     }
 
 }

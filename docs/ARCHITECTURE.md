@@ -172,13 +172,14 @@ Three levels of tests. All run with `./mvnw.cmd test`.
 
 **Current test inventory:**
 
-| File                            | Type        | What it covers                                                                    |
-| ------------------------------- | ----------- | --------------------------------------------------------------------------------- |
-| `RateitBackendApplicationTests` | Integration | Spring context loads, Flyway migrations run                                       |
-| `PostServiceTest`               | Unit        | `createPost`, `uploadVideo`, `streamVideo` service logic                          |
-| `PostControllerTest`            | Slice       | `POST /posts` — 201/400; `POST /posts/{id}/video` — 200; `GET /posts/{id}/video` — 206 |
-| `CreatePostIntegrationTest`     | Integration | Full create post flow, real DB                                                    |
-| `UploadVideoIntegrationTest`    | Integration | Create post + upload video, real DB + real file system                            |
+| File                            | Type        | What it covers                                                                                                         |
+| ------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `RateitBackendApplicationTests` | Integration | Spring context loads, Flyway migrations run                                                                            |
+| `PostServiceTest`               | Unit        | `createPost`, `uploadVideo`, `streamVideo`, `trackView` service logic                                                  |
+| `PostControllerTest`            | Slice       | `POST /posts` — 201/400; `POST /posts/{id}/video` — 200; `GET /posts/{id}/video` — 206; `POST /posts/{id}/views` — 204 |
+| `CreatePostIntegrationTest`     | Integration | Full create post flow, real DB                                                                                         |
+| `UploadVideoIntegrationTest`    | Integration | Create post + upload video, real DB + real file system                                                                 |
+| `TrackViewIntegrationTest`      | Integration | Create post + upload video + track view, real DB                                                                       |
 
 ---
 
@@ -264,6 +265,6 @@ This provides `@WebMvcTest` and `@AutoConfigureMockMvc` in the 4.x package locat
 - [x] CreatePostIntegrationTest (full-stack integration test — Testcontainers + real PostgreSQL)
 - [x] Video upload (multipart) — POST /posts/{id}/video, LocalVideoStorage, StorageConfig, GlobalExceptionHandler
 - [x] Video streaming (HTTP Range) — GET /posts/{id}/video, Range header, 206 Partial Content, StreamingResponseBody
-- [ ] View tracking
+- [x] View tracking — POST /posts/{id}/views, ViewEvent entity, ViewEventRepository, 204 No Content
 - [ ] Analytics endpoint
 - [ ] Feed endpoint

@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -94,6 +93,12 @@ public class PostController {
                 .header("Content-Length", String.valueOf(contentLength))
                 .header("Content-Range", "bytes " + rangeStart + "-" + rangeEnd + "/" + fileSize)
                 .body(body);
+    }
+
+    @PostMapping("/{id}/views")
+    public ResponseEntity<Void> trackView(@PathVariable Long id) {
+        postService.trackView(id);
+        return ResponseEntity.noContent().build();
     }
 
 }
